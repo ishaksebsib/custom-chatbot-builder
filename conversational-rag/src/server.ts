@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { type Express } from "express";
 import { pino } from "pino";
 import { env } from "process";
-import { healthCheckRouter } from "./api/healthCheckRouter";
+import { healthCheckRouter } from "./api/healthChecker/healthCheckRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
