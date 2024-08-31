@@ -3,6 +3,7 @@ import express, { type Express } from "express";
 import { pino } from "pino";
 import { env } from "process";
 import { healthCheckRouter } from "./api/healthChecker/healthCheckRouter";
+import { chatRouter } from "./api/chat/chatRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -20,5 +21,6 @@ app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 
 // Routes
 app.use("/", healthCheckRouter);
+app.use("/chat", chatRouter);
 
 export { app, logger };
