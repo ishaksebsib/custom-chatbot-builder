@@ -21,6 +21,6 @@ app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 
 // Routes
 app.use("/", healthCheckRouter);
-app.use("/chat", chatRouter);
+app.use("/api/chat", chatRouter);
 
 export { app, logger };
