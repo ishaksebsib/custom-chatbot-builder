@@ -6,15 +6,25 @@ class ChatController {
 		const { question: question } = req.body;
 
 		if (!question) {
-			return res.status(500).json({ error: "question required!" })
+			return res.status(500).json({ error: "question required!" });
 		}
 
+		res.writeHead(200, {
+			"Content-Type": "text/event-stream",
+			"Cache-Control": "no-cache, no-transform",
+			Connection: "keep-alive",
+		});
+
 		try {
-			const chatService = new ChatService(
-				"cbe",
-			);
-			const response = await chatService.askQuestion(question);
-			res.status(200).json(response);
+			const chatService = new ChatService("cbe");
+
+			const reponseStream = await chatService.askQuestion(question);
+
+			for await (const response of reponseStream) {
+				res.write(response);
+			}
+
+			res.end();
 		} catch (error: any) {
 			res.status(500).json({ error: error.message });
 		}

@@ -17,13 +17,11 @@ class ChatService {
 		}
 
 		try {
-			const response = await ragChain.invoke({
+			return ragChain.stream({
 				context: await conversationRetriever.invoke(question),
 				question: question,
 			});
 
-			logger.info("ChatService Response", response);
-			return response;
 		} catch (error) {
 			logger.error(`ChatService Error: ${error as string}`);
 			throw new Error(`ChatService Error: ${error as string}`);
