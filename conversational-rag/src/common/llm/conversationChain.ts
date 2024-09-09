@@ -1,56 +1,65 @@
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { OpenAIEmbeddings } from "@langchain/openai";
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
-import llm from "./baseLlm";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import Chain from "./Chain";
 import { logger } from "@/server";
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
-import path from "path";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 
-const conversationChain = async (file_name: string) => {
-	try {
-		logger.info("ConversationChain Started");
-		logger.info(`ConversationChain File Name : ${file_name}`);
+class ConversationChain {
+  private chain: Chain;
 
-		const prompt = await pull<ChatPromptTemplate>("rlm/rag-prompt");
-		const pdf_path = path.resolve(
-			__dirname,
-			"../../assets/pdf",
-			`${file_name}.pdf`,
-		);
-		const loader = new PDFLoader(pdf_path, { splitPages: false });
-		const docs = await loader.load();
+  constructor(
+    private llm: ChatOpenAI<ChatOpenAICallOptions>,
+    private vectorStore: Chroma,
+    private config: { chunkSize: number; chunkOverlap: number } = {
+      chunkSize: 1000,
+      chunkOverlap: 0,
+    },
+  ) {
+    this.chain = new Chain(this.vectorStore, this.config);
+  }
 
-		const textSplitter = new RecursiveCharacterTextSplitter({
-			chunkSize: 1000,
-			chunkOverlap: 200,
-		});
+  // Main function to create conversation chain
+  async create(fileName: string) {
+    try {
+      logger.info("ConversationChain Started");
+      logger.info(`Processing File: ${fileName}`);
 
-		const splits = await textSplitter.splitDocuments(docs);
+      // Load Prompt
+      const prompt = await pull<ChatPromptTemplate>("rlm/rag-prompt");
 
-		const vectorStore = new Chroma(new OpenAIEmbeddings(), {
-			collectionName: "conversation",
-		});
+      // Load and Split PDF Documents
+      const docs = await this.chain.loadPdf(fileName);
+      const splits = await this.chain.splitDocuments(docs);
 
-		await vectorStore.addDocuments(splits);
+      // Add Documents to Vector Store
+      await this.chain.addDocument(splits);
 
-		const conversationRetriever = vectorStore.asRetriever();
-		const ragChain = await createStuffDocumentsChain({
-			llm,
-			prompt,
-			outputParser: new StringOutputParser(),
-		});
+      // Get Vector Store Retriever
+      const retriever = this.chain.retrive();
 
-		logger.info("ConversationChain Completed");
+      // Create Chain
+      const chain = await this.createConversationChain(prompt);
 
-		return { ragChain, conversationRetriever };
-	} catch (error) {
-		logger.error(`ConversationChain Error : ${error}`);
-		throw new Error(`ConversationChain Error: ${error}`);
-	}
-};
+      logger.info("ConversationChain Completed");
 
-export default conversationChain;
+      return { conversationChain: chain, conversationRetriever: retriever };
+    } catch (error: any) {
+      logger.error(`ConversationChain Error: ${error.message}`, error);
+      throw new Error(`ConversationChain Error: ${error.message}`);
+    }
+  }
+
+  // Create the chain using LLM and prompt
+  private createConversationChain(prompt: ChatPromptTemplate) {
+    return createStuffDocumentsChain({
+      llm: this.llm,
+      prompt,
+      outputParser: new StringOutputParser(),
+    });
+  }
+}
+
+export default ConversationChain;

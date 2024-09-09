@@ -1,32 +1,35 @@
-import conversationChain from "@/common/llm/conversationChain";
+import llm from "@/common/llm/baseLlm";
+import ConversationChain from "@/common/llm/conversationChain";
+import conversationStore from "@/common/vectorStores/conversationStore";
 import { logger } from "@/server";
 
 class ChatService {
-	public fileName: string;
-	constructor(fileName: string) {
-		this.fileName = fileName;
-	}
+  public fileName: string;
+  private convoChain: ConversationChain;
 
-	public async askQuestion(question: string) {
-		const { ragChain, conversationRetriever } = await conversationChain(
-			this.fileName,
-		);
+  constructor(fileName: string) {
+    this.fileName = fileName;
+    this.convoChain = new ConversationChain(llm, conversationStore);
+  }
 
-		if (!ragChain || !conversationRetriever) {
-			throw new Error("ChatService Initialization Error");
-		}
+  public async askQuestion(question: string) {
+    const { conversationChain, conversationRetriever } =
+      await this.convoChain.create(this.fileName);
 
-		try {
-			return ragChain.stream({
-				context: await conversationRetriever.invoke(question),
-				question: question,
-			});
+    if (!conversationChain || !conversationRetriever) {
+      throw new Error("ChatService Initialization Error");
+    }
 
-		} catch (error) {
-			logger.error(`ChatService Error: ${error as string}`);
-			throw new Error(`ChatService Error: ${error as string}`);
-		}
-	}
+    try {
+      return conversationChain.stream({
+        context: await conversationRetriever.invoke(question),
+        question: question,
+      });
+    } catch (error) {
+      logger.error(`ChatService Error: ${error as string}`);
+      throw new Error(`ChatService Error: ${error as string}`);
+    }
+  }
 }
 
 export default ChatService;
