@@ -2,14 +2,14 @@ import conversationChain from "@/common/llm/conversationChain";
 import { logger } from "@/server";
 
 class ChatService {
-	public url: string;
-	constructor(url: string) {
-		this.url = url;
+	public fileName: string;
+	constructor(fileName: string) {
+		this.fileName = fileName;
 	}
 
 	public async askQuestion(question: string) {
 		const { ragChain, conversationRetriever } = await conversationChain(
-			this.url,
+			this.fileName,
 		);
 
 		if (!ragChain || !conversationRetriever) {

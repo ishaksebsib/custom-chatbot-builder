@@ -1,19 +1,27 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import llm from "./baseLlm";
 import { logger } from "@/server";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import path from "path";
 
-const conversationChain = async (url: string) => {
+const conversationChain = async (file_name: string) => {
 	try {
 		logger.info("ConversationChain Started");
-		logger.info(`ConversationChain URL : ${url}`);
-		const loader = new CheerioWebBaseLoader(url);
+		logger.info(`ConversationChain File Name : ${file_name}`);
+
+		const prompt = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+		const pdf_path = path.resolve(
+			__dirname,
+			"../../assets/pdf",
+			`${file_name}.pdf`,
+		);
+		const loader = new PDFLoader(pdf_path, { splitPages: false });
 		const docs = await loader.load();
 
 		const textSplitter = new RecursiveCharacterTextSplitter({
@@ -22,12 +30,12 @@ const conversationChain = async (url: string) => {
 		});
 
 		const splits = await textSplitter.splitDocuments(docs);
-		const vectorStore = await MemoryVectorStore.fromDocuments(
-			splits,
-			new OpenAIEmbeddings(),
-		);
 
-		const prompt = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+		const vectorStore = new Chroma(new OpenAIEmbeddings(), {
+			collectionName: "conversation",
+		});
+
+		await vectorStore.addDocuments(splits);
 
 		const conversationRetriever = vectorStore.asRetriever();
 		const ragChain = await createStuffDocumentsChain({
@@ -35,6 +43,7 @@ const conversationChain = async (url: string) => {
 			prompt,
 			outputParser: new StringOutputParser(),
 		});
+
 		logger.info("ConversationChain Completed");
 
 		return { ragChain, conversationRetriever };

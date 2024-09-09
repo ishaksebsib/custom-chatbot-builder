@@ -3,15 +3,15 @@ import ChatService from "./chatService";
 
 class ChatController {
 	public async getAnswer(req: Request, res: Response) {
-		const { quesstion: question } = req.body;
+		const { question: question } = req.body;
 
 		if (!question) {
-			return res.status(500).json({ error: "quesstion required!" })
+			return res.status(500).json({ error: "question required!" })
 		}
 
 		try {
 			const chatService = new ChatService(
-				"https://www.britannica.com/biography/Abiy-Ahmed",
+				"cbe",
 			);
 			const response = await chatService.askQuestion(question);
 			res.status(200).json(response);
