@@ -14,4 +14,7 @@ export const env = cleanEnv(process.env, {
 	COMMON_RATE_LIMIT_MAX_REQUESTS: num({ devDefault: testOnly(1000) }),
 	COMMON_RATE_LIMIT_WINDOW_MS: num({ devDefault: testOnly(1000) }),
 	OPENAI_API_KEY: str(),
+	JWT_ACCESS_TOKEN_SECRET: str(),
+	JWT_REFRESH_TOKEN_SECRET: str(),
+	JWT_ACCESS_TOKEN_EXPIRATION: str(),
 });
