@@ -4,12 +4,15 @@ import { pino } from "pino";
 import { env } from "process";
 import { healthCheckRouter } from "./api/healthChecker/healthCheckRouter";
 import { chatRouter } from "./api/chat/chatRouter";
+import { authRouter } from "./api/auth/authRouter";
+import authGuard from "./common/middleware/authGuard";
+import { db } from "./db/connect";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
 
 // connect to the database
-//connectDB();
+db.connect();
 
 // Set the application to trust the reverse proxy
 app.set("trust proxy", true);
@@ -21,6 +24,10 @@ app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 
 // Routes
 app.use("/", healthCheckRouter);
+app.use("/api/auth", authRouter);
+
+// Protect the routes below this middleware
+app.use(authGuard);
 app.use("/api/chat", chatRouter);
 
 export { app, logger };
