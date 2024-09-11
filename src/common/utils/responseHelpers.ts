@@ -36,6 +36,6 @@ export class CreateResponse<T = null> {
   }
 }
 
-export const sendResponse = (res: Response, responseObject: CreateResponse) => {
+export const sendResponse = <T>(res: Response, responseObject: CreateResponse<T>) => {
   return res.status(responseObject.statusCode).send(responseObject);
 };
