@@ -1,12 +1,19 @@
-import { env } from "@/common/utils/envConfig";
+import { sendResponse } from "@/common/utils/responseHelpers";
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import { authService } from "./authService";
 
 class AuthController {
-  public async login(req: Request, res: Response) {
-    const { username } = req.body;
+  async signup(req: Request, res: Response) {
+    const user = req.body;
+    const serviceResponse = await authService.signup(user);
+    return sendResponse(res, serviceResponse);
+  }
 
+  async signin(req: Request, res: Response) {
+    const { email, password } = req.body;
+    const serviceResponse = await authService.signin(email, password);
+    return sendResponse(res, serviceResponse);
   }
 }
 
-export default AuthController;
+export const authController = new AuthController();
