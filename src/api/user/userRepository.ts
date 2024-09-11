@@ -7,6 +7,10 @@ class UserRepository {
 		this._user = userModel;
 	}
 
+	async create(user: any) {
+		return this._user.create(user);
+	}
+
 	async findAll() {
 		return this._user.find({});
 	}
