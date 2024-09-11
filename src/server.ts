@@ -7,6 +7,7 @@ import { chatRouter } from "./api/chat/chatRouter";
 import { authRouter } from "./api/auth/authRouter";
 import authGuard from "./common/middleware/authGuard";
 import { db } from "./db/connect";
+import { userRouter } from "./api/user/userRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -28,6 +29,7 @@ app.use("/api/auth", authRouter);
 
 // Protect the routes below this middleware
 app.use(authGuard);
+app.use("/api/users", userRouter);
 app.use("/api/chat", chatRouter);
 
 export { app, logger };
