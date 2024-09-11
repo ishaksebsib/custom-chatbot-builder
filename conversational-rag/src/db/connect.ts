@@ -3,15 +3,23 @@ import { logger } from "@/server";
 import mongoose from "mongoose";
 
 class MongoDBConnection {
+	static #instance: MongoDBConnection;
 	private mongoURL: string;
 	private connection: typeof mongoose | null;
 
-	constructor() {
+	private constructor() {
 		this.mongoURL = env.MONGO_URI;
 		this.connection = null;
 	}
 
-	// singleton pattern
+	public static get instance() {
+		if (!MongoDBConnection.#instance) {
+			MongoDBConnection.#instance = new MongoDBConnection();
+		}
+
+		return MongoDBConnection.#instance;
+	}
+
 	async connect() {
 		if (this.connection) {
 			logger.info("Already connected to MongoDB");
@@ -44,7 +52,7 @@ class MongoDBConnection {
 	async closeConnection() {
 		logger.info("Closing MongoDB connection");
 		try {
-			await this.disconnect();
+			await mongoose.connection.close();
 			logger.info("MongoDB connection closed");
 		} catch (error) {
 			logger.error("Error closing MongoDB connection", error);
@@ -68,4 +76,4 @@ class MongoDBConnection {
 	}
 }
 
-export const db = new MongoDBConnection();
+export const db = MongoDBConnection.instance;
