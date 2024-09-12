@@ -10,8 +10,17 @@ class AuthController {
   }
 
   async signin(req: Request, res: Response) {
-    const { email, password } = req.body;
-    const serviceResponse = await authService.signin(email, password);
+    const serviceResponse = await authService.signin(req.body, res);
+    return sendResponse(res, serviceResponse);
+  }
+
+  async refresh(req: Request, res: Response) {
+    const serviceResponse = await authService.refresh(req);
+    return sendResponse(res, serviceResponse);
+  }
+
+  async signout(_req: Request, res: Response) {
+    const serviceResponse = await authService.signout(res);
     return sendResponse(res, serviceResponse);
   }
 }

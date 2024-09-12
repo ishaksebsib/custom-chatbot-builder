@@ -18,4 +18,5 @@ export const env = cleanEnv(process.env, {
 	JWT_ACCESS_TOKEN_SECRET: str(),
 	JWT_REFRESH_TOKEN_SECRET: str(),
 	JWT_ACCESS_TOKEN_EXPIRATION: str(),
+	JWT_REFRESH_TOKEN_EXPIRATION: str(),
 });
