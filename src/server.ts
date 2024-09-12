@@ -8,6 +8,7 @@ import { authRouter } from "./api/auth/authRouter";
 import authGuard from "./common/middleware/authGuard";
 import { db } from "./db/connect";
 import { userRouter } from "./api/user/userRouter";
+import errorHandler from "./common/middleware/errorHandler";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -31,5 +32,8 @@ app.use("/api/auth", authRouter);
 app.use(authGuard);
 app.use("/api/users", userRouter);
 app.use("/api/chat", chatRouter);
+
+// Error handler
+app.use(errorHandler);
 
 export { app, logger };
