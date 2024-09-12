@@ -7,13 +7,13 @@ const authGuard = (req: Request, res: Response, next: NextFunction) => {
   const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return sendResponse(CreateResponse.failure("Unauthorized", null, 401), res);
+    return sendResponse(res, CreateResponse.failure("Unauthorized", null, 401));
   }
 
   const isValid = verifyToken(token);
 
   if (!isValid) {
-    return sendResponse(CreateResponse.failure("Unauthorized", null, 401), res);
+    return sendResponse(res, CreateResponse.failure("Unauthorized", null, 401));
   }
 
   return next();
