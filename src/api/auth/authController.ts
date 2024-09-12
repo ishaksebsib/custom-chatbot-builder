@@ -1,11 +1,11 @@
 import { sendResponse } from "@/common/utils/responseHelpers";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { authService } from "./authService";
 
 class AuthController {
-  async signup(req: Request, res: Response) {
+  async signup(req: Request, res: Response, next: NextFunction) {
     const user = req.body;
-    const serviceResponse = await authService.signup(user);
+    const serviceResponse = await authService.signup(user, next);
     return sendResponse(res, serviceResponse);
   }
 

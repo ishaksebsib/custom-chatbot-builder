@@ -4,7 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
 import UserRepository from "../user/userRepository";
 import { IUser } from "../user/userModel";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import errorHandler from "@/common/middleware/errorHandler";
 
 class AuthService {
   private _userRepo: UserRepository;
@@ -13,29 +14,57 @@ class AuthService {
     this._userRepo = usrRepository;
   }
 
-  public async signup(user: IUser) {
-    if (!user) {
+  public async signup(user: IUser, next: NextFunction) {
+    const { firstName, lastName, email, password } = user;
+
+    try {
+      const existingUser = await this._userRepo.findByEmail(email);
+      if (existingUser) {
+        return CreateResponse.failure(
+          "User with this email already exists",
+          null,
+          StatusCodes.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+
+    //TODO: find more elegant way to validate user input
+
+    if (!firstName || !lastName || !email || !password) {
       return CreateResponse.failure(
-        "User data is required",
+        "First name, last name, email and password are required",
         null,
         StatusCodes.BAD_REQUEST,
       );
     }
 
-    //TODO: Add validation for user data
+    // check for strong password
+    const strongPassword = new RegExp(
+      "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})",
+    );
 
-    const newUser = await this._userRepo.create(user);
-
-    //TODO: Add error handling for user creation
-
-    //TODO: Add password encription
-
-    if (!newUser) {
+    if (!strongPassword.test(password)) {
       return CreateResponse.failure(
-        "User creation failed",
+        " Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character",
         null,
-        StatusCodes.INTERNAL_SERVER_ERROR,
+        StatusCodes.BAD_REQUEST,
       );
+    }
+
+    //TODO: encrypt password
+
+    let newUser;
+    try {
+      newUser = await this._userRepo.create({
+        firstName,
+        lastName,
+        email,
+        password,
+      });
+    } catch (error) {
+      next(error);
     }
 
     return CreateResponse.success("User created successfully", newUser);
