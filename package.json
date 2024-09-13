@@ -15,8 +15,9 @@
 	"dependencies": {
 		"@langchain/community": "^0.2.32",
 		"@langchain/openai": "^0.2.8",
+		"@types/bcrypt": "^5.0.2",
 		"@types/jsonwebtoken": "^9.0.6",
-		"bcryptjs": "^2.4.3",
+		"bcrypt": "^5.1.1",
 		"cheerio": "^1.0.0",
 		"chromadb": "^1.8.1",
 		"cors": "^2.8.5",
