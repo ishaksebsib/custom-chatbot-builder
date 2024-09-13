@@ -16,7 +16,6 @@ class AuthService {
 
 	public async signup(user: IUser, next: NextFunction) {
 		const { firstName, lastName, email, password } = user;
-
 		try {
 			const existingUser = await this._userRepo.findByEmail(email);
 			if (existingUser) {
@@ -30,32 +29,8 @@ class AuthService {
 			next(error);
 		}
 
-		//TODO: find more elegant way to validate user input
-
-		if (!firstName || !lastName || !email || !password) {
-			return CreateResponse.failure(
-				"First name, last name, email and password are required",
-				null,
-				StatusCodes.BAD_REQUEST,
-			);
-		}
-
-		// check for strong password
-		const strongPassword = new RegExp(
-			"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})",
-		);
-
-		if (!strongPassword.test(password)) {
-			return CreateResponse.failure(
-				" Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character",
-				null,
-				StatusCodes.BAD_REQUEST,
-			);
-		}
-
-		let newUser;
 		try {
-			newUser = await this._userRepo.create({
+			await this._userRepo.create({
 				firstName,
 				lastName,
 				email,
@@ -65,21 +40,17 @@ class AuthService {
 			next(error);
 		}
 
-		return CreateResponse.success("User created successfully", newUser);
+		return CreateResponse.success("User created successfully", {
+			firstName,
+			lastName,
+			email,
+		});
 	}
 
 	public async signin(
 		{ email, password }: { email: string; password: string },
 		res: Response,
 	) {
-		if (!email || !password) {
-			return CreateResponse.failure(
-				"Email and password are required",
-				null,
-				StatusCodes.BAD_REQUEST,
-			);
-		}
-
 		const user = await this._userRepo.findByEmail(email);
 
 		if (!user) {
