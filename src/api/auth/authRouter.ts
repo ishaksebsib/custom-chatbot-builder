@@ -1,11 +1,17 @@
 import express, { type Router } from "express";
-import { authController } from "./authController";
+import AuthService from "./authService";
+import UserRepository from "../user/userRepository";
+import AuthController from "./authController";
 import {
-	signInValidator,
-	signUpValidator,
+  signInValidator,
+  signUpValidator,
 } from "@/common/middleware/formValidators";
 
 export const authRouter: Router = express.Router();
+
+const userRepository = new UserRepository();
+const authService = new AuthService(userRepository);
+const authController = new AuthController(authService);
 
 // Auth Routes
 authRouter.post("/signup", signUpValidator, authController.signup);

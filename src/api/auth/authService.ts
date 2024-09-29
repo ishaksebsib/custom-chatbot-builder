@@ -10,7 +10,7 @@ import bycrpt from "bcrypt";
 class AuthService {
 	private _userRepo: UserRepository;
 
-	constructor(usrRepository: UserRepository = new UserRepository()) {
+	constructor(usrRepository: UserRepository) {
 		this._userRepo = usrRepository;
 	}
 
@@ -142,4 +142,4 @@ class AuthService {
 	}
 }
 
-export const authService = new AuthService();
+export default AuthService;
