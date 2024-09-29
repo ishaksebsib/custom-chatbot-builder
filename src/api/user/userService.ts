@@ -3,7 +3,7 @@ import UserRepository from "./userRepository";
 class UserService {
 	private _userRepo: UserRepository;
 
-	constructor(usrRepository: UserRepository = new UserRepository()) {
+	constructor(usrRepository: UserRepository) {
 		this._userRepo = usrRepository;
 	}
 
@@ -28,4 +28,4 @@ class UserService {
 	}
 }
 
-export const userService = new UserService();
+export default UserService;
